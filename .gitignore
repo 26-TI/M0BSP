@@ -1,0 +1,10 @@
+# 构建产物
+build/
+*.o
+*.d
+*.elf
+*.map
+
+# Python
+__pycache__/
+*.pyc
