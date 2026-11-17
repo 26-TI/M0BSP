@@ -34,6 +34,15 @@ public:
   /** @brief 绑定 I2C 硬件实例 */
   bool init(const Config &cfg);
 
+  /**
+   * @brief 总线/控制器恢复
+   *
+   * 用途：复位（尤其是烧录器的 reset）可能打断一帧传输，导致控制器
+   * FIFO/状态机停在半空或从机未释放总线，后续写入会静默失败。
+   * 本函数复位传输状态并清空 FIFO，重新使能控制器；不 clk 释放总线。
+   */
+  void recover();
+
   /** @brief 获取绑定的 I2C 外设指针 */
   I2C_Regs *hw() const { return _i2c; }
 
