@@ -134,7 +134,8 @@ void IicOled::refresh()
 
 void IicOled::show_char(uint8_t x, uint8_t y, uint8_t chr)
 {
-  for (uint8_t i = 0; i <= 8; i++)
+  /* 8x16 字模：每个字符占 8 列 × 2 page，只写 8 列（写 9 列会压掉下一个字符的首列） */
+  for (uint8_t i = 0; i < 8; i++)
   {
     _gram[x * 8 + i][y * 2]     = font_8x16[chr - ' '][i];
     _gram[x * 8 + i][y * 2 + 1] = font_8x16[chr - ' '][i + 8];

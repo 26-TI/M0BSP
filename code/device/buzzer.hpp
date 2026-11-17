@@ -28,9 +28,10 @@ public:
   /** @brief 初始化配置 */
   struct Config
   {
-    BspPwm  *pwm;    ///< 已绑定的 PWM 对象
-    uint8_t  ch;     ///< 该 PWM 对象里用于蜂鸣器的通道号
-    uint32_t period; ///< PWM 周期（= 定时器时钟 / 目标音调频率）
+    BspPwm  *pwm;                    ///< 已绑定的 PWM 对象
+    uint8_t  ch;                     ///< 该 PWM 对象里用于蜂鸣器的通道号
+    uint32_t period;                 ///< PWM 周期（= 定时器时钟 / 目标音调频率）
+    uint32_t clk_freq = 80000000U;   ///< 定时器输入时钟 (Hz)，用于 set_frequency()
   };
 
   /**
@@ -46,14 +47,22 @@ public:
   /** @brief 停止发声（占空比 0） */
   void off();
 
+  /**
+   * @brief 改变音调频率
+   * @param hz 目标频率 (Hz)，0 表示静音
+   * @note 正在发声时会立即以新频率继续响
+   */
+  void set_frequency(uint32_t hz);
+
   /** @brief 当前是否在发声 */
   bool is_on() const { return _on; }
 
 private:
-  BspPwm  *_pwm    = nullptr;
-  uint8_t  _ch     = 0;
-  uint32_t _period = 0;
-  bool     _on     = false;
+  BspPwm  *_pwm      = nullptr;
+  uint8_t  _ch       = 0;
+  uint32_t _period   = 0;
+  uint32_t _clk_freq = 80000000U;
+  bool     _on       = false;
 };
 
 #endif /* __M0BSP_DEVICE_BUZZER_HPP__ */
