@@ -11,6 +11,18 @@
 /* ==================== 构造 ==================== */
 IicOled::IicOled() {}
 
+namespace
+{
+  /** @brief 字节内 bit 顺序反转（用于字形上下翻转） */
+  inline uint8_t reverse_bits8(uint8_t b)
+  {
+    b = (uint8_t)((b & 0xF0U) >> 4 | (b & 0x0FU) << 4);
+    b = (uint8_t)((b & 0xCCU) >> 2 | (b & 0x33U) << 2);
+    b = (uint8_t)((b & 0xAAU) >> 1 | (b & 0x55U) << 1);
+    return b;
+  }
+} // namespace
+
 /* ==================== 初始化 ==================== */
 bool IicOled::init(BspI2c *i2c, uint8_t dev_addr, Rotation rot)
 {
@@ -158,11 +170,31 @@ void IicOled::refresh()
 
 void IicOled::show_char(uint8_t x, uint8_t y, uint8_t chr)
 {
-  /* 8x16 字模：每个字符占 8 列 × 2 page，只写 8 列（写 9 列会压掉下一个字符的首列） */
+  /* 8x16 字模：每个字符占 8 列 × 2 page。
+   * 字模位序与面板扫描约定不一致时，用 _font_flip 在**字形层面**修正
+   * （只影响单字，不影响字符位置与排版）。 */
+  const uint8_t *glyph = font_8x16[chr - ' '];
+  const bool flip_h = (_font_flip == FontFlip::H || _font_flip == FontFlip::HV);
+  const bool flip_v = (_font_flip == FontFlip::V || _font_flip == FontFlip::HV);
+
   for (uint8_t i = 0; i < 8; i++)
   {
-    _gram[x * 8 + i][y * 2]     = font_8x16[chr - ' '][i];
-    _gram[x * 8 + i][y * 2 + 1] = font_8x16[chr - ' '][i + 8];
+    const uint8_t col = flip_h ? (uint8_t)(7U - i) : i;
+
+    uint8_t lo = glyph[i];      /* 上半页：第 0~7 行 */
+    uint8_t hi = glyph[i + 8];  /* 下半页：第 8~15 行 */
+
+    if (flip_v)
+    {
+      /* 上下翻转 = 两个半页交换，且每个字节内的 bit 顺序也要反 */
+      const uint8_t nlo = reverse_bits8(glyph[i + 8]);
+      const uint8_t nhi = reverse_bits8(glyph[i]);
+      lo                = nlo;
+      hi                = nhi;
+    }
+
+    _gram[x * 8 + col][y * 2]     = lo;
+    _gram[x * 8 + col][y * 2 + 1] = hi;
   }
 }
 

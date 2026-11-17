@@ -96,6 +96,31 @@ public:
   void show_char(uint8_t x, uint8_t y, uint8_t chr);
 
   /**
+   * @brief 字模镜像（**只影响字形，不影响字符位置/排版**）
+   *
+   * 用途：字模表（fort.h）的位序与面板扫描约定不一致时，会出现
+   *       “文本位置对、单个字看起来上下左右都反”的情况。
+   *       此时不要动屏幕方向（Rotation），用这里修正字形：
+   *       - NONE ：不镜像（默认）
+   *       - H    ：单字左右镜像
+   *       - V    ：单字上下镜像
+   *       - HV   ：单字 180°（上下左右都反）
+   */
+  enum class FontFlip : uint8_t
+  {
+    NONE = 0,
+    H,
+    V,
+    HV,
+  };
+
+  /** @brief 设置字模镜像（可在 init 后、refresh 前调用） */
+  void set_font_flip(FontFlip f) { _font_flip = f; }
+
+  /** @brief 当前字模镜像方式 */
+  FontFlip font_flip() const { return _font_flip; }
+
+  /**
    * @brief 在指定位置显示字符串
    * @param x   起始列位置（0~15）
    * @param y   起始行位置（0~3）
@@ -130,6 +155,7 @@ private:
 
   BspI2c *_i2c      = nullptr; ///< I2C 实例指针
   uint8_t _dev_addr = 0x3C;    ///< 设备地址
+  FontFlip _font_flip = FontFlip::NONE; ///< 字形镜像方式（不影响字符位置）
   uint8_t _gram[144][8]{};     ///< 显存缓冲（144 列 × 8 页，实际只用 128 列）
 };
 
