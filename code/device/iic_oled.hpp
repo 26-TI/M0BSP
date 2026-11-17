@@ -30,13 +30,31 @@ public:
   IicOled();
 
   /**
+   * @brief 屏幕方向（SSD1306 只有段重映射 + COM 扫描方向两个翻转位）
+   *
+   * @note 物理安装方向不同时选这里，不用改初始化序列：
+   *       - ROT_0    ：A0 + C0（不镜像，默认）
+   *       - ROT_180  ：A1 + C8（左右 + 上下都翻转）
+   *       - MIRROR_X ：A1 + C0（仅左右翻转）
+   *       - MIRROR_Y ：A0 + C8（仅上下翻转）
+   */
+  enum class Rotation : uint8_t
+  {
+    ROT_0 = 0,
+    ROT_180,
+    MIRROR_X,
+    MIRROR_Y,
+  };
+
+  /**
    * @brief 初始化 OLED 并绑定 I2C 实例
    * @param i2c    指向已初始化的 BspI2c 实例
    * @param dev_addr 7 位 I2C 设备地址（通常为 0x3C）
+   * @param rot     屏幕方向（屏幕倒置时改成 ROT_180）
    * @return true  初始化成功
    * @return false i2c 为空
    */
-  bool init(BspI2c *i2c, uint8_t dev_addr = 0x3C);
+  bool init(BspI2c *i2c, uint8_t dev_addr = 0x3C, Rotation rot = Rotation::ROT_0);
 
   /* ==================== 显示控制 ==================== */
 
