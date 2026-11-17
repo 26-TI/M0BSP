@@ -54,7 +54,11 @@ public:
    * @param data 数据缓冲区
    * @param len  字节数
    */
-  void write(uint8_t dev, const uint8_t *data, size_t len);
+  /**
+   * @brief 向从机写入数据（阻塞）
+   * @return true=完整发送；false=等待超时（总线忙/从机未释放）
+   */
+  bool write(uint8_t dev, const uint8_t *data, size_t len);
 
   /* ── 读操作 ── */
 

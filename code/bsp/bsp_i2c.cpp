@@ -69,11 +69,16 @@ void BspI2c::_tx_byte(uint8_t b)
  *  write() — 阻塞写入（任意长度）
  * ================================================================ */
 
-void BspI2c::write(uint8_t dev, const uint8_t *data, size_t len)
+bool BspI2c::write(uint8_t dev, const uint8_t *data, size_t len)
 {
-  if (len == 0) return;
+  if (len == 0) return true;
 
-  _wait_idle();
+  /* 等总线空闲；超时说明从机未释放/被占用，直接报失败 */
+  uint32_t timeout = I2C_TIMEOUT;
+  while (!(DL_I2C_getControllerStatus(_i2c) & DL_I2C_CONTROLLER_STATUS_IDLE))
+  {
+    if (--timeout == 0U) return false;
+  }
 
   /* 填充首段数据（FIFO 深 8 字节，填满或填完） */
   size_t first = (len < 8U) ? len : 8U;
@@ -84,9 +89,22 @@ void BspI2c::write(uint8_t dev, const uint8_t *data, size_t len)
 
   /* 剩余字节逐个填入 FIFO */
   for (size_t i = first; i < len; i++)
-    _tx_byte(data[i]);
+  {
+    timeout = I2C_TIMEOUT;
+    while (DL_I2C_isControllerTXFIFOFull(_i2c))
+    {
+      if (--timeout == 0U) return false;
+    }
+    DL_I2C_transmitControllerData(_i2c, data[i]);
+  }
 
-  _wait_done();
+  /* 等本次传输结束 */
+  timeout = I2C_TIMEOUT;
+  while (DL_I2C_getControllerStatus(_i2c) & DL_I2C_CONTROLLER_STATUS_BUSY_BUS)
+  {
+    if (--timeout == 0U) return false;
+  }
+  return true;
 }
 
 /* ================================================================

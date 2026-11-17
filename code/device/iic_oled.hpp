@@ -120,6 +120,9 @@ public:
   /** @brief 当前字模镜像方式 */
   FontFlip font_flip() const { return _font_flip; }
 
+  /** @brief 最近一次 init()/refresh() 的 I2C 写是否全部成功（false 建议重新 init） */
+  bool io_ok() const { return _io_ok; }
+
   /**
    * @brief 在指定位置显示字符串
    * @param x   起始列位置（0~15）
@@ -156,6 +159,7 @@ private:
   BspI2c *_i2c      = nullptr; ///< I2C 实例指针
   uint8_t _dev_addr = 0x3C;    ///< 设备地址
   FontFlip _font_flip = FontFlip::NONE; ///< 字形镜像方式（不影响字符位置）
+  bool     _io_ok     = true;           ///< 最近一轮 I2C 写是否全部成功
   uint8_t _gram[144][8]{};     ///< 显存缓冲（144 列 × 8 页，实际只用 128 列）
 };
 
