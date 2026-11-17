@@ -59,6 +59,24 @@ void BspPwm::set_duty(uint8_t ch, uint32_t duty)
 }
 
 /**
+ * @brief 运行时修改 PWM 周期（装载值）
+ *
+ * @param period 新的 Load 寄存器值，必须 > 0
+ * @return true=已写入，false=参数无效
+ *
+ * @note 只改装载值，不动 CC 寄存器；调用方需要重新 set_duty。
+ */
+bool BspPwm::set_period(uint32_t period)
+{
+  if (!_cfg.timer || period == 0U)
+    return false;
+
+  DL_Timer_setLoadValue(_cfg.timer, period);
+  _cfg.period = period;
+  return true;
+}
+
+/**
  * @brief 读取指定通道的当前占空比设定值
  *
  * @param ch 通道号，范围 [0, num_ch-1]

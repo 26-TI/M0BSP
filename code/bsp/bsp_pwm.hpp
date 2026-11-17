@@ -60,6 +60,16 @@ public:
   void set_duty(uint8_t ch, uint32_t duty);
 
   /**
+   * @brief 运行时修改 PWM 周期（装载值）
+   * @param period 新的 Load 寄存器值，必须 > 0
+   * @return true=已写入，false=参数无效
+   *
+   * @note 用于需要变频的场合（如蜂鸣器变调）：频率 = clk_freq / period。
+   *       修改后各通道原有的 CC 值不自动缩放，需要重新 set_duty。
+   */
+  bool set_period(uint32_t period);
+
+  /**
    * @brief 读取指定通道的当前占空比设定值
    * @param ch 通道号（0 ~ num_ch-1）
    * @return 占空比值，通道号无效时返回 0
