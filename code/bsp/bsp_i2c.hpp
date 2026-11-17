@@ -34,17 +34,6 @@ public:
   /** @brief 绑定 I2C 硬件实例 */
   bool init(const Config &cfg);
 
-  /**
-   * @brief 总线/控制器恢复（切在任务上下文调用）
-   *
-   * 用途：复位（尤其是烧录器的 reset）可能打断一帧传输，导致控制器
-   * FIFO/状态机停在半空，后续写入会静默失败。
-   * 本函数放弃当前传输并按超时清 FIFO；不会无界阻塞。
-   *
-   * @note **不要**在调度器启动前（如 board_init）调用。
-   */
-  void recover();
-
   /** @brief 获取绑定的 I2C 外设指针 */
   I2C_Regs *hw() const { return _i2c; }
 
@@ -56,11 +45,7 @@ public:
    * @param data 数据缓冲区
    * @param len  字节数
    */
-  /**
-   * @brief 向从机写入数据（阻塞）
-   * @return true=完整发送；false=等待超时（总线忙/从机未释放）
-   */
-  bool write(uint8_t dev, const uint8_t *data, size_t len);
+  void write(uint8_t dev, const uint8_t *data, size_t len);
 
   /* ── 读操作 ── */
 

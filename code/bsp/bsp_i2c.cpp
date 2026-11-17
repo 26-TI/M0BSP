@@ -19,36 +19,7 @@ bool BspI2c::init(const Config &cfg)
 {
   if (!cfg.i2c) return false;
   _i2c = cfg.i2c;
-  /* 注意：这里**不能**调 recover()。recover 会等待硬件完成清理，
-     board_init() 在调度器启动前调用，一旦总线被从机拉死就会卡住整个启动。
-     需要清理时由设备层（IicOled::init）在任务上下文里调用。 */
   return true;
-}
-
-void BspI2c::recover()
-{
-  if (!_i2c) return;
-
-  /* 放弃当前传输 */
-  DL_I2C_resetControllerTransfer(_i2c);
-
-  /* 有界清 FIFO：SDK 的 DL_I2C_flushControllerTXFIFO() / ...RXFIFO() 是
-     无超时死等（总线被从机拉低时不返回），所以自己实现带超时的版本。 */
-  uint32_t timeout = I2C_TIMEOUT;
-  DL_I2C_startFlushControllerTXFIFO(_i2c);
-  while (!DL_I2C_isControllerTXFIFOEmpty(_i2c))
-  {
-    if (--timeout == 0U) break;
-  }
-  DL_I2C_stopFlushControllerTXFIFO(_i2c);
-
-  timeout = I2C_TIMEOUT;
-  DL_I2C_startFlushControllerRXFIFO(_i2c);
-  while (!DL_I2C_isControllerRXFIFOEmpty(_i2c))
-  {
-    if (--timeout == 0U) break;
-  }
-  DL_I2C_stopFlushControllerRXFIFO(_i2c);
 }
 
 /* ================================================================
@@ -88,16 +59,11 @@ void BspI2c::_tx_byte(uint8_t b)
  *  write() — 阻塞写入（任意长度）
  * ================================================================ */
 
-bool BspI2c::write(uint8_t dev, const uint8_t *data, size_t len)
+void BspI2c::write(uint8_t dev, const uint8_t *data, size_t len)
 {
-  if (len == 0) return true;
+  if (len == 0) return;
 
-  /* 等总线空闲；超时说明从机未释放/被占用，直接报失败 */
-  uint32_t timeout = I2C_TIMEOUT;
-  while (!(DL_I2C_getControllerStatus(_i2c) & DL_I2C_CONTROLLER_STATUS_IDLE))
-  {
-    if (--timeout == 0U) return false;
-  }
+  _wait_idle();
 
   /* 填充首段数据（FIFO 深 8 字节，填满或填完） */
   size_t first = (len < 8U) ? len : 8U;
@@ -108,22 +74,9 @@ bool BspI2c::write(uint8_t dev, const uint8_t *data, size_t len)
 
   /* 剩余字节逐个填入 FIFO */
   for (size_t i = first; i < len; i++)
-  {
-    timeout = I2C_TIMEOUT;
-    while (DL_I2C_isControllerTXFIFOFull(_i2c))
-    {
-      if (--timeout == 0U) return false;
-    }
-    DL_I2C_transmitControllerData(_i2c, data[i]);
-  }
+    _tx_byte(data[i]);
 
-  /* 等本次传输结束 */
-  timeout = I2C_TIMEOUT;
-  while (DL_I2C_getControllerStatus(_i2c) & DL_I2C_CONTROLLER_STATUS_BUSY_BUS)
-  {
-    if (--timeout == 0U) return false;
-  }
-  return true;
+  _wait_done();
 }
 
 /* ================================================================
