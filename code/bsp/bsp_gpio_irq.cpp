@@ -54,12 +54,16 @@ void BspGpioIrq::dispatch(GPIO_Regs *port)
     return;
   }
 
-  /* 只处理"已使能"的挂起位，读操作不清标志，必须显式 clear */
+  /* 只处理"已使能"的挂起位；读操作不清标志 */
   const uint32_t status = DL_GPIO_getEnabledInterruptStatus(port, 0xFFFFFFFFU);
   if (status == 0U)
   {
     return;
   }
+
+  /* 先清再分发：回调里如果又来了新边沿，会重新置位并在本次返回后再次进中断，
+     不会被"事后清除"抹掉（编码器高速时尤其重要）。 */
+  DL_GPIO_clearInterruptStatus(port, status);
 
   for (uint8_t i = 0U; i < _count; ++i)
   {
@@ -69,10 +73,6 @@ void BspGpioIrq::dispatch(GPIO_Regs *port)
       continue;
     }
 
-    DL_GPIO_clearInterruptStatus(port, e.pin);
     e.cb(e.ctx);
   }
-
-  /* 没有注册回调的引脚也要清掉，否则中断会一直重入 */
-  DL_GPIO_clearInterruptStatus(port, status);
 }

@@ -54,10 +54,13 @@ public:
   /**
    * @brief 分发某个端口上已挂起的中断（在 GROUP1_IRQHandler 里调用）
    * @param port GPIOA 或 GPIOB
+   *
+   * @note 实现顺序是"读状态 → 清状态 → 调回调"，因此回调期间新到的边沿不会丢。
    */
   static void dispatch(GPIO_Regs *port);
 
 private:
+  /** @brief 注册表容量（一个端口一根线算一项；超了 attach 返回 false） */
   static constexpr uint8_t MAX_ENTRIES = 12;
   static Entry             _entries[MAX_ENTRIES];
   static uint8_t           _count;
