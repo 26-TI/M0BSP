@@ -12,13 +12,37 @@
 IicOled::IicOled() {}
 
 /* ==================== 初始化 ==================== */
-bool IicOled::init(BspI2c *i2c, uint8_t dev_addr)
+bool IicOled::init(BspI2c *i2c, uint8_t dev_addr, Rotation rot)
 {
   if (!i2c)
     return false;
 
   _i2c      = i2c;
   _dev_addr = dev_addr;
+
+  /* 段重映射（A0=正常 / A1=左右镜像）与 COM 扫描方向（C0=正常 / C8=上下镜像） */
+  uint8_t seg_remap = 0xA0;
+  uint8_t com_scan  = 0xC0;
+  switch (rot)
+  {
+  case Rotation::ROT_180:
+    seg_remap = 0xA1;
+    com_scan  = 0xC8;
+    break;
+  case Rotation::MIRROR_X:
+    seg_remap = 0xA1;
+    com_scan  = 0xC0;
+    break;
+  case Rotation::MIRROR_Y:
+    seg_remap = 0xA0;
+    com_scan  = 0xC8;
+    break;
+  case Rotation::ROT_0:
+  default:
+    seg_remap = 0xA0;
+    com_scan  = 0xC0;
+    break;
+  }
 
   /* SSD1306 初始化序列（与原 OLED_Init 一致） */
   write_cmd(0xAE); // 关闭显示
@@ -27,8 +51,8 @@ bool IicOled::init(BspI2c *i2c, uint8_t dev_addr)
   write_cmd(0x40); // 起始行
   write_cmd(0x81); // 对比度设置
   write_cmd(0xCF); // 对比度值
-  write_cmd(0xA1); // 段重映射（左右翻转）
-  write_cmd(0xC8); // COM 扫描方向（上下翻转）
+  write_cmd(seg_remap); // 段重映射（方向）
+  write_cmd(com_scan);  // COM 扫描方向（方向）
   write_cmd(0xA6); // 正常显示（非反色）
   write_cmd(0xA8); // 多路复用比
   write_cmd(0x3F); // 1/64 占空比
