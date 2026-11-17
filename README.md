@@ -34,7 +34,7 @@ python3 Middlewares/M0BSP/tools/sysconfig_ui.py --gen
 
 | 文件 | 作用 |
 | --- | --- |
-| `User/Board/hardware_config.h` | **唯一配置源**：功能开关、任务优先级/栈深、超时 |
+| `User/Board/hardware_config.h` | **板级/BSP 配置源**：外设参数、库任务参数、板级开关（业务配置写在各任务文件里） |
 | `User/Board/board_instances.hpp` | **实例清单**：`M0BSP_UART_INSTANCES(X)` / `M0BSP_CAN_INSTANCES(X)`，中断入口按它展开 |
 | `User/Board/board_cfg.{hpp,cpp}` | 驱动对象定义 + `board_init()`：把对象绑到 SysConfig 实例 |
 | `User/Board/FreeRTOSConfig.h` | RTOS 配置（tick 1 kHz、堆大小、钩子开关） |
