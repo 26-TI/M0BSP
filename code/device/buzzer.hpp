@@ -10,8 +10,8 @@
  * @code
  *   DeviceBuzzer buzzer;
  *   buzzer.init({&bsp_pwm_buzzer, 0, PWM_G12_BUZZER_INST_CLK_FREQ / 2700U});
- *   buzzer.on();   // 2700 Hz 发声
- *   buzzer.off();
+ *   buzzer.on();   // 2700 Hz 方波（50%）
+ *   buzzer.off();  // 静默：引脚恒高（100%）
  * @endcode
  */
 
@@ -44,7 +44,14 @@ public:
   /** @brief 发声（占空比 50%） */
   void on();
 
-  /** @brief 停止发声（占空比 0） */
+  /**
+   * @brief 停止发声（占空比 100% → 引脚恒高）
+   *
+   * @note 静默电平选择高电平的理由：
+   *       - 无源蜂鸣器需要交流才响，直流（高或低）都不发声
+   *       - 拉高便于用示波器/万用表确认引脚状态
+   *       若你的驱动电路是“低电平导通”，发射时同样还是 50% 方波，不受影响。
+   */
   void off();
 
   /**

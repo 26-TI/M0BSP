@@ -31,11 +31,6 @@ bool IicOled::init(BspI2c *i2c, uint8_t dev_addr, Rotation rot)
 
   _i2c      = i2c;
   _dev_addr = dev_addr;
-  _io_ok    = true;
-
-  /* 先把控制器/FIFO 恢复到干净状态：烧录器的 reset 可能打断上一帧传输，
-     导致命令流与从机状态错位（花屏）。 */
-  _i2c->recover();
 
   /* 段重映射（A0=正常 / A1=左右镜像）与 COM 扫描方向（C0=正常 / C8=上下镜像） */
   uint8_t seg_remap = 0xA0;
@@ -90,23 +85,14 @@ bool IicOled::init(BspI2c *i2c, uint8_t dev_addr, Rotation rot)
   clear();
   write_cmd(0xAF); // 开启显示
 
-  return _io_ok;
+  return true;
 }
 
 /* ==================== 命令发送 ==================== */
 void IicOled::write_cmd(uint8_t cmd)
 {
-  /* 已经写失败：快速返回，避免每个命令都等满超时 */
-  if (!_io_ok)
-  {
-    return;
-  }
-
   uint8_t data[2] = {0x00, cmd};
-  if (!_i2c->write(_dev_addr, data, 2))
-  {
-    _io_ok = false;
-  }
+  _i2c->write(_dev_addr, data, 2);
 }
 
 /* ==================== 显示控制 ==================== */
@@ -166,8 +152,6 @@ void IicOled::refresh()
   uint8_t buf[129];
   buf[0] = 0x40; /* 控制字节: 数据模式 */
 
-  _io_ok = true;
-
   for (uint8_t page = 0; page < 8; page++)
   {
     /* 设置页地址和列起始地址 */
@@ -180,11 +164,7 @@ void IicOled::refresh()
       buf[col + 1] = _gram[col][page];
 
     /* 一次写入 129 字节 (1 ctrl + 128 pixel) */
-    if (!_i2c->write(_dev_addr, buf, 129))
-    {
-      _io_ok = false;
-      return; /* 总线已异常，本帧不再继续 */
-    }
+    _i2c->write(_dev_addr, buf, 129);
   }
 }
 
