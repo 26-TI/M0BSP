@@ -18,8 +18,8 @@ bool DeviceBuzzer::init(const Config &cfg)
   _clk_freq = cfg.clk_freq;
   _on       = false;
 
-  /* 静默时占空比 0 → 引脚恒低 */
-  _pwm->set_duty(_ch, 0U);
+  /* 静默时引脚拉满：100% 占空比 → 常高（无源蜂鸣器直流不发声） */
+  _pwm->set_duty(_ch, 0);
   return true;
 }
 
@@ -41,8 +41,8 @@ void DeviceBuzzer::off()
     return;
   }
 
-  /* 占空比 0 → 引脚恒低 */
-  _pwm->set_duty(_ch, 0U);
+  /* 100% 占空比 → 引脚恒高（用示波器可直接测到 3.3 V 直流） */
+  _pwm->set_duty(_ch, _period);
   _on = false;
 }
 
@@ -79,7 +79,7 @@ void DeviceBuzzer::set_frequency(uint32_t hz)
   }
   else
   {
-    /* 静默中改频：把 CC 重新清 0，避免旧值残留 */
-    _pwm->set_duty(_ch, 0U);
+    /* 静默中改频：保持拉满，否则 CC 旧值可能大于新 period 导致意外低电平 */
+    _pwm->set_duty(_ch, _period);
   }
 }
