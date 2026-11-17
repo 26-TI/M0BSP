@@ -3,7 +3,7 @@
  * @brief 惯性导航角度闭环控制 — 实现
  */
 
-#include "ins.hpp"
+#include "device/ins.hpp"
 #include <math.h>
 
 /* ===================================================================

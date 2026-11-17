@@ -96,7 +96,7 @@ private:
   uint8_t              _tx_buf[B] __attribute__((aligned(4))){}; ///< TX DMA 本地缓冲区 (4 字节对齐)
   bool                 _tx_dma_busy = false;                     ///< TX DMA 忙碌标志
 
-  static constexpr size_t MAX_INST = 4;         ///< 最大实例数
+  static constexpr size_t MAX_INST = 8;         ///< 最大实例数（G3519 共 5 路 UART）
   static BspUart         *_instances[MAX_INST]; ///< 实例查找表
   static size_t           _inst_count;          ///< 当前实例计数
 };

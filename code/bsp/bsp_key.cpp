@@ -23,7 +23,7 @@
  * @note 纯裸机操作 (DL_GPIO_readPins)，无系统阻塞，无 ISR。
  */
 
-#include "bsp_key.hpp"
+#include "bsp/bsp_key.hpp"
 
 /* ================================================================
  *  初始化

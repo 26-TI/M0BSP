@@ -29,10 +29,10 @@
 #ifndef __MOTOR_HPP__
 #define __MOTOR_HPP__
 
-#include "bsp_pwm.hpp"
-#include "bsp_qei.hpp"
-#include "bsp_gpio.hpp"
-#include "pid.hpp"
+#include "bsp/bsp_pwm.hpp"
+#include "bsp/bsp_qei.hpp"
+#include "bsp/bsp_gpio.hpp"
+#include "algorithm/pid.hpp"
 #include <stdint.h>
 
 class Motor

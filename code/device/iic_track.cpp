@@ -6,7 +6,7 @@
  *       仅重构为 C++ 类形式，移除调试死循环 while(1)。
  */
 
-#include "iic_track.hpp"
+#include "device/iic_track.hpp"
 
 // ---- 构造 ----
 

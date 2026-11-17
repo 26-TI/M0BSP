@@ -20,6 +20,7 @@
 
 #include "FreeRTOS.h" // IWYU pragma: keep
 #include "stream_buffer.h"
+#include "ti_msp_dl_config.h" // IWYU pragma: keep
 
 /// 每条 CAN 消息字节数: ID(4B) + DLC(1B) + DATA(8B)
 #define CAN_MSG_SIZE 13U
@@ -44,9 +45,24 @@ public:
     bool     bus_off;
   };
 
-  void init(Mode mode = NORMAL);
+  /** @brief CAN 硬件绑定（由宿主的 board_cfg 用 SysConfig 实例填写） */
+  struct Config
+  {
+    MCAN_Regs *inst; ///< MCAN 外设基址（如 MCAN0_INST）
+    IRQn_Type  irq;  ///< 中断号（如 MCAN0_INST_INT_IRQN）
+  };
+
+  /**
+   * @brief 初始化（创建 StreamBuffer + 绑定实例）
+   * @param cfg  硬件绑定参数
+   * @param mode 工作模式
+   */
+  void init(const Config &cfg, Mode mode = NORMAL);
   void enable_irq();
   void disable_irq();
+
+  /** @brief 当前实例（供中断入口分发；未初始化时为 nullptr） */
+  static BspCan *instance() { return _self; }
 
   /** @brief 非阻塞发送 */
   bool send(uint32_t id, const uint8_t *data, uint8_t len);
@@ -79,6 +95,8 @@ private:
   bool                 _loopback  = false;
   StreamBufferHandle_t _rx_stream = nullptr;
   StreamBufferHandle_t _tx_stream = nullptr;
+  Config               _cfg{};                    ///< 硬件绑定
+  static BspCan       *_self;                      ///< 当前实例（中断分发用）
 
   /** 打包一条消息写入 StreamBuffer（非阻塞，满则丢弃） */
   void _push_rx(uint32_t id, uint8_t dlc, const uint8_t *data);

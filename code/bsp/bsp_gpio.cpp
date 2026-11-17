@@ -3,7 +3,7 @@
  * @brief MSPM0 BspGpio 实现 — 单引脚 GPIO 输出
  */
 
-#include "bsp_gpio.hpp"
+#include "bsp/bsp_gpio.hpp"
 
 void BspGpio::init(const Config &cfg)
 {

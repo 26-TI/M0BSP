@@ -13,8 +13,8 @@
  * 
  */
 
-#include "bsp_uart.hpp"
-#include "user_system.hpp"
+#include "bsp/bsp_uart.hpp"
+#include "service/user_system.hpp"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -78,13 +78,13 @@ bool BspUart<BUF_SIZE>::init(const Config &cfg)
   DL_UART_Main_setRXFIFOThreshold(_cfg.uart, DL_UART_RX_FIFO_LEVEL_1_2_FULL);
   DL_UART_setRXInterruptTimeout(_cfg.uart, 6U);
   DL_UART_Main_enableInterrupt(_cfg.uart,
-                               DL_UART_MAIN_INTERRUPT_RX | DL_UART_MAIN_INTERRUPT_RX_TIMEOUT_ERROR
-                                 | DL_UART_MAIN_INTERRUPT_DMA_DONE_TX);
+                               DL_UART_MAIN_INTERRUPT_RX | DL_UART_MAIN_INTERRUPT_RX_TIMEOUT_ERROR);
 
   /* TX: DMA */
   DL_DMA_disableChannel(DMA, _cfg.dma_tx_chan);
   DL_DMA_setSrcAddr(DMA, _cfg.dma_tx_chan, (uint32_t)_tx_buf);
   DL_DMA_setDestAddr(DMA, _cfg.dma_tx_chan, (uint32_t)&(_cfg.uart->TXDATA));
+
   return true;
 }
 
@@ -166,13 +166,8 @@ int BspUart<B>::uart_printf(const char *fmt, ...)
   if (n < 0)
     return -1;
 
-  /* 轮询 TX（DMA 硬件触发待查） */
-  for (int i = 0; i < n; i++)
-  {
-    while (DL_UART_Main_isTXFIFOFull(_cfg.uart)) {}
-    DL_UART_Main_transmitDataBlocking(_cfg.uart, (uint8_t)buf[i]);
-  }
-  return n;
+  size_t sent = send(reinterpret_cast<const uint8_t *>(buf), static_cast<size_t>(n), portMAX_DELAY);
+  return (sent == static_cast<size_t>(n)) ? n : -1;
 }
 
 /**
@@ -219,32 +214,7 @@ template class BspUart<64>;
 template class BspUart<128>;
 template class BspUart<256>;
 
-extern "C" void UART0_IRQHandler(void)
-{
-  BaseType_t w = pdFALSE;
-  if (auto *i = BspUart<64>::find(UART0))
-    i->handle_isr(&w);
-  portYIELD_FROM_ISR(w);
-}
-extern "C" void UART1_IRQHandler(void)
-{
-  BaseType_t w = pdFALSE;
-  if (auto *i = BspUart<64>::find(UART1))
-    i->handle_isr(&w);
-  portYIELD_FROM_ISR(w);
-}
-extern "C" void UART4_IRQHandler(void)
-{
-  BaseType_t w = pdFALSE;
-  if (auto *i = BspUart<64>::find(UART4))
-    i->handle_isr(&w);
-  portYIELD_FROM_ISR(w);
-}
-extern "C" void UART3_IRQHandler(void)
-{
-  BaseType_t w = pdFALSE;
-  if (auto *i = BspUart<64>::find(UART3))
-    i->handle_isr(&w);
-  portYIELD_FROM_ISR(w);
-}
+/* 中断入口按宿主的 board_instances.hpp 清单展开（库内不写具体实例名） */
+#include "bsp/bsp_instances.hpp"
 
+M0BSP_UART_INSTANCES(M0BSP_UART_ISR)

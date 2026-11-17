@@ -19,7 +19,7 @@
 #ifndef __IIC_TRACK_HPP__
 #define __IIC_TRACK_HPP__
 
-#include "bsp_i2c.hpp"
+#include "bsp/bsp_i2c.hpp"
 #include <stdint.h>
 
 class IicTrack

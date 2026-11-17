@@ -21,7 +21,7 @@
 #ifndef __IIC_OLED_HPP__
 #define __IIC_OLED_HPP__
 
-#include "bsp_i2c.hpp"
+#include "bsp/bsp_i2c.hpp"
 #include <stdint.h>
 
 class IicOled

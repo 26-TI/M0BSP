@@ -10,7 +10,7 @@
  *       正转时计数器递增，反转时递减。
  */
 
-#include "bsp_qei.hpp"
+#include "bsp/bsp_qei.hpp"
 
 /* ==================== 构造 ==================== */
 BspQei::BspQei() {}

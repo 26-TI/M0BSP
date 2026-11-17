@@ -3,7 +3,7 @@
  * @brief TI 陀螺仪协议封装实现。
  */
 
-#include "ti_gyro.hpp"
+#include "device/ti_gyro.hpp"
 
 #include <string.h>
 

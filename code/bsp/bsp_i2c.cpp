@@ -3,7 +3,7 @@
  * @brief MSPM0 BspI2c 实现 — 裸机阻塞 I2C 读写
  */
 
-#include "bsp_i2c.hpp"
+#include "bsp/bsp_i2c.hpp"
 
 /* ================================================================
  *  常量

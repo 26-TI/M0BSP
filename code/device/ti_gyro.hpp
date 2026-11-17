@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "bsp_uart.hpp"
+#include "bsp/bsp_uart.hpp"
 
 class TiGyro
 {

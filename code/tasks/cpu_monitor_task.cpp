@@ -18,27 +18,16 @@
  *   - 优先级 1（仅高于空闲任务），不影响实时任务
  */
 
-#include "task.hpp"
+#include "tasks/task.hpp"
 
 #include "FreeRTOS.h" // IWYU pragma: keep
 #include "task.h"
 
 // ==========================================================================
-// 运行时间计数器 (tick-hook 驱动)
+// 运行时间计数器（由宿主提供定义，见 User/Board/freertos_hooks.cpp）
 // ==========================================================================
 
-volatile unsigned long CPU_RunTime = 0UL;
-
-/**
- * @brief FreeRTOS tick 钩子 — 每 tick 累加 CPU_RunTime (+1000/tick)
- *
- * 用于 configGENERATE_RUN_TIME_STATS, 与 1000Hz tick 同步。
- * 每 tick 计数 +1000, 即 RunTime 单位为 μs。
- */
-extern "C" void vApplicationTickHook(void)
-{
-  CPU_RunTime += 1000; /* 每 tick +1000，与 1000Hz tick 同步 */
-}
+extern volatile unsigned long CPU_RunTime;
 
 // ==========================================================================
 // cpu_monitor_task — CPU 空闲率监控 (500ms, 优先级 2)

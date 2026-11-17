@@ -10,7 +10,7 @@
  *       该 API 对 TIMG 和 TIMA 定时器均有效。
  */
 
-#include "bsp_pwm.hpp"
+#include "bsp/bsp_pwm.hpp"
 
 /* ==================== 构造 ==================== */
 BspPwm::BspPwm() {}

@@ -23,9 +23,9 @@
 #ifndef __INS_HPP__
 #define __INS_HPP__
 
-#include "pid.hpp"
-#include "ti_gyro.hpp"
-#include "motor.hpp"
+#include "algorithm/pid.hpp"
+#include "device/ti_gyro.hpp"
+#include "device/motor.hpp"
 
 class INS
 {

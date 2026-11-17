@@ -5,8 +5,8 @@
  * @note 所有逻辑保持与原 OLED.c 一致，仅重构为 C++ 类形式。
  */
 
-#include "iic_oled.hpp"
-#include "fort.h"
+#include "device/iic_oled.hpp"
+#include "device/fort.h"
 
 /* ==================== 构造 ==================== */
 IicOled::IicOled() {}
