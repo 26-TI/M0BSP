@@ -32,6 +32,10 @@ bool IicOled::init(BspI2c *i2c, uint8_t dev_addr, Rotation rot)
   _i2c      = i2c;
   _dev_addr = dev_addr;
 
+  /* 先把控制器/FIFO 恢复到干净状态：烧录器的 reset 可能打断上一帧传输，
+     导致命令流与从机状态错位（花屏）。 */
+  _i2c->recover();
+
   /* 段重映射（A0=正常 / A1=左右镜像）与 COM 扫描方向（C0=正常 / C8=上下镜像） */
   uint8_t seg_remap = 0xA0;
   uint8_t com_scan  = 0xC0;

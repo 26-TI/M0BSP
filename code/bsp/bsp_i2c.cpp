@@ -19,7 +19,17 @@ bool BspI2c::init(const Config &cfg)
 {
   if (!cfg.i2c) return false;
   _i2c = cfg.i2c;
+  recover();
   return true;
+}
+
+void BspI2c::recover()
+{
+  if (!_i2c) return;
+
+  DL_I2C_resetControllerTransfer(_i2c);
+  DL_I2C_flushControllerTXFIFO(_i2c);
+  DL_I2C_flushControllerRXFIFO(_i2c);
 }
 
 /* ================================================================
