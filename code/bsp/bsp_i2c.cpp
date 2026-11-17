@@ -19,7 +19,9 @@ bool BspI2c::init(const Config &cfg)
 {
   if (!cfg.i2c) return false;
   _i2c = cfg.i2c;
-  recover();
+  /* 注意：这里**不能**调 recover()。recover 会等待硬件完成清理，
+     board_init() 在调度器启动前调用，一旦总线被从机拉死就会卡住整个启动。
+     需要清理时由设备层（IicOled::init）在任务上下文里调用。 */
   return true;
 }
 
@@ -27,9 +29,26 @@ void BspI2c::recover()
 {
   if (!_i2c) return;
 
+  /* 放弃当前传输 */
   DL_I2C_resetControllerTransfer(_i2c);
-  DL_I2C_flushControllerTXFIFO(_i2c);
-  DL_I2C_flushControllerRXFIFO(_i2c);
+
+  /* 有界清 FIFO：SDK 的 DL_I2C_flushControllerTXFIFO() / ...RXFIFO() 是
+     无超时死等（总线被从机拉低时不返回），所以自己实现带超时的版本。 */
+  uint32_t timeout = I2C_TIMEOUT;
+  DL_I2C_startFlushControllerTXFIFO(_i2c);
+  while (!DL_I2C_isControllerTXFIFOEmpty(_i2c))
+  {
+    if (--timeout == 0U) break;
+  }
+  DL_I2C_stopFlushControllerTXFIFO(_i2c);
+
+  timeout = I2C_TIMEOUT;
+  DL_I2C_startFlushControllerRXFIFO(_i2c);
+  while (!DL_I2C_isControllerRXFIFOEmpty(_i2c))
+  {
+    if (--timeout == 0U) break;
+  }
+  DL_I2C_stopFlushControllerRXFIFO(_i2c);
 }
 
 /* ================================================================

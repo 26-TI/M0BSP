@@ -96,8 +96,13 @@ bool IicOled::init(BspI2c *i2c, uint8_t dev_addr, Rotation rot)
 /* ==================== 命令发送 ==================== */
 void IicOled::write_cmd(uint8_t cmd)
 {
+  /* 已经写失败：快速返回，避免每个命令都等满超时 */
+  if (!_io_ok)
+  {
+    return;
+  }
+
   uint8_t data[2] = {0x00, cmd};
-  /* 记录写失败：初始化结束时据此返回 false，宿主可重试 */
   if (!_i2c->write(_dev_addr, data, 2))
   {
     _io_ok = false;
@@ -178,6 +183,7 @@ void IicOled::refresh()
     if (!_i2c->write(_dev_addr, buf, 129))
     {
       _io_ok = false;
+      return; /* 总线已异常，本帧不再继续 */
     }
   }
 }
